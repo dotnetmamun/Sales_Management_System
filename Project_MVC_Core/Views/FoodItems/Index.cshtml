@@ -1,0 +1,123 @@
+﻿@model IEnumerable<FoodItem>
+@using Microsoft.EntityFrameworkCore
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div id="tableDiv">
+            <div class="d-flex justify-content-between">
+                <h3> FoodItems</h3>
+                <div>
+                    <a class="btn btn-outline-primary btn-sm" asp-action="Create" asp-controller="FoodItems"><i class="fa fa-plus"> </i>Create</a>
+                </div>
+            </div>
+            <table class="table table-bordered">
+                <thead >
+                    <tr class="bg-success">
+                        <th></th>
+                        <th>FoodItem Name</th>
+                        <th>Unit Price</th>
+                        <th>Expire Date</th>
+                        <th></th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model)
+                    {
+                        <tr id="fooditem_@b.FoodItemId">
+                            <td>
+                                <img src="/Pictures/@b.Picture" class="rounded-circle" style="width:40px" />
+                            </td>
+                            <td>@b.FoodItemName</td>
+                            <td>@($"{b.Price:0.00}")</td>
+                            <td>@($"{b.ExpireDate:yyyy-MM-dd}")</td>
+                            <td>
+                                <a asp-action="Edit" asp-route-id="@b.FoodItemId" asp-controller="FoodItems" class="btn btn-outline-info btn-sm"><i class="fa fa-pencil"></i></a>
+                                <button type="button" class="btn btn-outline-danger btn-sm del" data-pk="@b.FoodItemId"><i class="fa fa-trash"></i></button>
+                                @* <a asp-action="Delete" asp-route-id="@b.ProductId" asp-controller="Products" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a> *@
+                            </td>
+                        </tr>
+                        <tr id="order_@b.FoodItemId">
+                            <td></td>
+                            <td colspan="4">
+                                <h3>Orders</h3>
+                                <table class="table table-bordered">
+                                    <thead >
+                                        <tr class="bg-info">
+                                            <th>Order Date</th>
+                                            <th>Quantity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var s in b.Orders)
+                                        {
+                                            <tr>
+                                                @* <td>@s.SaleDate.ToString("yyyy-MM-dd")</td> *@
+                                                <td>@($"{s.OrderDate:yyyy-MM-dd}")</td>
+                                                <td>@s.Quantity</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="modal" tabindex="-1" id="delModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Confirm delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger">Are you sure to delete this item?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger btn-sm" id="btnDelete">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section styles
+{
+    <link href="~/libs/icons/css/font-awesome.css" rel="stylesheet" />
+}
+@section scripts
+{
+    <script src="~/libs/jquery/jquery.js"></script>
+    <script src="~/libs/ajax/jquery.unobtrusive-ajax.js"></script>
+    <script>
+        var idToDel = -1;
+        var myModal = new bootstrap.Modal(document.getElementById('delModal'));
+        $(document).on('click', "button.del", function () {
+            var id = $(this).data("pk");
+            idToDel = id;
+            myModal.show();
+        });
+        $("#btnDelete").click(() => {
+            $.ajax({
+                type: 'post',
+                url: `/FoodItems/Delete/${idToDel}`,
+                dataType: 'json',
+                success: r => {
+                    if (r.success == true) {
+                        $(`#fooditem_${idToDel}`).remove();
+                        $(`#order_${idToDel}`).remove();
+                        idToDel = -1;
+                        myModal.hide();
+                    }
+                }
+            })
+        });
+    </script>
+}
