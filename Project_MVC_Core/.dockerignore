@@ -1,1 +1,10 @@
-
+bin/
+obj/
+.vscode/
+.git/
+.github/
+*.sln
+*.user
+*.bak
+Dockerfile
+.dockerignore
